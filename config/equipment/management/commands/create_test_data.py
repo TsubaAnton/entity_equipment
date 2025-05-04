@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from equipment.models import EquipmentType
 
+
 class Command(BaseCommand):
-    help = 'Creates initial equipment types'
+    help = 'Создает начальные типы оборудования'
 
     def handle(self, *args, **options):
         EquipmentType.objects.get_or_create(
@@ -19,5 +20,5 @@ class Command(BaseCommand):
                 'mask_sn': 'NXXAAXZXaa'
             }
         )
-        self.stdout.write(self.style.SUCCESS('Successfully created equipment types'))
+        self.stdout.write(self.style.SUCCESS('Успешное создание типов оборудования'))
 

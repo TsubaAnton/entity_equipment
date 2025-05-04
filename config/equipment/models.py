@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator
-from .validators import validate_number_matches_the_mask
 
 NULLABLE = {'blank': True, 'null': True}
 
@@ -14,7 +13,7 @@ class EquipmentType(models.Model):
         return self.type_name
 
     class Meta:
-        verbose_name = 'Тип оборубования'
+        verbose_name = 'Тип оборудования'
         verbose_name_plural = 'Типы оборудования'
 
 
