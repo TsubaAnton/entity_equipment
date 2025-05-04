@@ -1,7 +1,7 @@
 from .models import Equipment
 from django.db.models import Q
-from .serializers import EquipmentCreateSerializer
-from rest_framework.exceptions import ValidationError
+from .serializers import EquipmentCreateSerializer, EquipmentUpdateSerializer
+from rest_framework.exceptions import ValidationError, NotFound
 
 
 def list_equipment(filters):
@@ -15,7 +15,7 @@ def list_equipment(filters):
         queryset = queryset.filter(equipment_type=filters['equipment_type'])
     search = filters.get('search')
     if search:
-        queryset = queryset.filter(Q(serial_number=search)) | Q(note=search)
+        queryset = queryset.filter(Q(serial_number__icontains=search) | Q(note__icontains=search))
     return queryset
 
 
@@ -43,17 +43,24 @@ def get_equipment(pk):
     """
     Возвращает запись Equipment по id
     """
-    return Equipment.objects.get(pk=pk, is_deleted=False)
+    try:
+        equipment = Equipment.objects.get(pk=pk)
+    except Equipment.DoesNotExists:
+        raise NotFound("Оборудование не найдено")
+    return equipment
 
 
 def update_equipment(pk, data):
     """
     Обновляет запись Equipment по id и возвращает ее
     """
-    instance = get_equipment(pk)
-    serializer = EquipmentCreateSerializer(instance, data=data, partial=True)
-    serializer.is_valid(raise_exception=True)
-    return serializer.save()
+    try:
+        instance = get_equipment(pk)
+        serializer = EquipmentUpdateSerializer(instance, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return serializer.save()
+    except:
+        raise NotFound("Оборудование отсутствует")
 
 
 def delete_equipment(pk):

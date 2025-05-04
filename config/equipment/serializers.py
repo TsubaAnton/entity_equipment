@@ -36,4 +36,10 @@ class EquipmentCreateSerializer(serializers.ModelSerializer):
         if Equipment.objects.filter(equipment_type=equipment_type, serial_number=serial_number).exists():
             raise serializers.ValidationError({'serial_number': 'Серийный номер уже существует'})
         return data
-    
+
+
+class EquipmentUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Equipment
+        fields = '__all__'
+        read_only_fields = ('serial_number',)

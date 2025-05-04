@@ -1,4 +1,4 @@
-from .models import EquipmentType
+from .models import EquipmentType, Equipment
 from rest_framework import generics, filters, status
 from .serializers import EquipmentSerializer, EquipmentTypeSerializer
 from .paginators import EquipmentPaginator
@@ -9,12 +9,13 @@ from .services import list_equipment, create_equipment, get_equipment, update_eq
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
-class EquipmentListCreateAPIView(generics.GenericAPIView):
+class EquipmentListCreateAPIView(generics.ListCreateAPIView):
     """
     get: Вывод пагинированного списка оборудования с возможностью фильтрации по типу и поиска
     post: Создание новой(ых) записи(ей)
     """
     permission_classes = [IsAuthenticated]
+    queryset = Equipment.objects.filter(is_deleted=False)
     pagination_class = EquipmentPaginator
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['equipment_type']
@@ -41,18 +42,18 @@ class EquipmentRetrieveUpdateDestroyAPIView(generics.GenericAPIView):
     """
     permission_classes = [IsAuthenticated]
 
-    def get(request, id):
-        obj = get_equipment(id)
+    def get(self, request, pk):
+        obj = get_equipment(pk)
         serializer = EquipmentSerializer(obj)
         return Response(serializer.data)
 
-    def put(self, request, id):
-        obj = update_equipment(id, request.data)
+    def put(self, request, pk):
+        obj = update_equipment(pk, request.data)
         serializer = EquipmentSerializer(obj)
         return Response(serializer.data)
 
-    def delete(self, request, id):
-        delete_equipment(id)
+    def delete(self, request, pk):
+        delete_equipment(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
