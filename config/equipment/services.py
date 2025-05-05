@@ -2,6 +2,7 @@ from .models import Equipment
 from django.db.models import Q
 from .serializers import EquipmentCreateSerializer, EquipmentUpdateSerializer
 from rest_framework.exceptions import ValidationError, NotFound
+from django.db import transaction
 
 
 def list_equipment(filters):
@@ -28,14 +29,21 @@ def create_equipment(data):
     items = data if isinstance(data, list) else [data]
     created = []
     errors = []
-    for index, item in enumerate(items):
-        serializer = EquipmentCreateSerializer(data=item)
-        if serializer.is_valid():
-            created.append(serializer.save())
-        else:
-            errors.append({index: serializer.errors})
+    with transaction.atomic():
+        for item in items:
+            serializer = EquipmentCreateSerializer(data=item)
+            if serializer.is_valid():
+                created.append(serializer.save())
+            else:
+                errors.append({
+                    'data': item,
+                    'errors': serializer.errors
+                })
     if errors:
-        raise ValidationError(errors)
+        raise ValidationError({
+            'created': EquipmentCreateSerializer(created, many=True).data,
+            'errors': errors
+        })
     return created if isinstance(data, list) else created[0]
 
 
@@ -45,7 +53,7 @@ def get_equipment(pk):
     """
     try:
         equipment = Equipment.objects.get(pk=pk)
-    except Equipment.DoesNotExists:
+    except Equipment.DoesNotExist:
         raise NotFound("Оборудование не найдено")
     return equipment
 
