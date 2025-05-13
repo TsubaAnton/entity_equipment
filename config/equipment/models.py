@@ -15,6 +15,7 @@ class EquipmentType(models.Model):
     class Meta:
         verbose_name = 'Тип оборудования'
         verbose_name_plural = 'Типы оборудования'
+        db_table = 'equipment_type'
 
 
 class Equipment(models.Model):
@@ -30,3 +31,4 @@ class Equipment(models.Model):
         verbose_name = 'Оборудование'
         verbose_name_plural = 'Оборудования'
         unique_together = ('equipment_type', 'serial_number')
+        db_table = 'equipment'

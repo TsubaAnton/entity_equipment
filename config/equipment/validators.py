@@ -1,5 +1,6 @@
 import re
 from rest_framework.serializers import ValidationError
+from .models import Equipment, EquipmentType
 
 
 def validate_number_matches_the_mask(serial_number: str, mask_sn: str) -> None:
@@ -37,3 +38,14 @@ def validate_number_matches_the_mask(serial_number: str, mask_sn: str) -> None:
         raise ValidationError("Серийный номер не соответствует маске")
 
     return None
+
+
+def validate_equipment_data(serial_number: str, equipment_type: EquipmentType, instance: Equipment = None) -> None:
+    validate_number_matches_the_mask(serial_number, equipment_type.mask_sn)
+    qs = Equipment.objects.filter(equipment_type=equipment_type, serial_number=serial_number)
+    if instance:
+        qs = qs.exclude(pk=instance.pk)
+    if qs.exists():
+        raise ValidationError({
+            'serial_number': 'Серийный номер должен быть уникальным для этого типа'
+        })

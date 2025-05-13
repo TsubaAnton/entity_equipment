@@ -9,15 +9,18 @@ from .services import list_equipment, create_equipment, get_equipment, update_eq
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
-class EquipmentListCreateAPIView(generics.ListCreateAPIView):
+class BaseEquipmentView:
+    pagination_class = EquipmentPaginator
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+
+
+class EquipmentListCreateAPIView(BaseEquipmentView, generics.ListCreateAPIView):
     """
     get: Вывод пагинированного списка оборудования с возможностью фильтрации по типу и поиска
     post: Создание новой(ых) записи(ей)
     """
     permission_classes = [IsAuthenticated]
     queryset = Equipment.objects.filter(is_deleted=False).order_by('id')
-    pagination_class = EquipmentPaginator
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['equipment_type']
     search_fields = ['serial_number', 'note']
 
@@ -37,7 +40,7 @@ class EquipmentListCreateAPIView(generics.ListCreateAPIView):
 class EquipmentRetrieveUpdateDestroyAPIView(generics.GenericAPIView):
     """
     get: Запрос данных по id
-    put: Редактирование записи
+    put / patch: Редактирование записи
     delete: Удаление записи (мягкое удаление)
     """
     permission_classes = [IsAuthenticated]
@@ -48,7 +51,12 @@ class EquipmentRetrieveUpdateDestroyAPIView(generics.GenericAPIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        obj = update_equipment(pk, request.data)
+        obj = update_equipment(pk, request.data, partial=False)
+        serializer = EquipmentSerializer(obj)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        obj = update_equipment(pk, request.data, partial=True)
         serializer = EquipmentSerializer(obj)
         return Response(serializer.data)
 
@@ -57,7 +65,7 @@ class EquipmentRetrieveUpdateDestroyAPIView(generics.GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EquipmentTypeListAPIView(generics.ListAPIView):
+class EquipmentTypeListAPIView(BaseEquipmentView, generics.ListAPIView):
     """
     get: - Вывод пагинированного списка типов оборудования
          - Возможность фильтрации по наименованию и поиска по mask_sn
@@ -65,8 +73,6 @@ class EquipmentTypeListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = EquipmentType.objects.all()
     serializer_class = EquipmentTypeSerializer
-    pagination_class = EquipmentPaginator
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['type_name']
     search_fields = ['type_name', 'mask_sn']
 

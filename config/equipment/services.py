@@ -27,24 +27,40 @@ def create_equipment(data):
     :return: Объект Equipment или список объектов
     """
     items = data if isinstance(data, list) else [data]
-    created = []
     errors = []
-    with transaction.atomic():
-        for item in items:
-            serializer = EquipmentCreateSerializer(data=item)
-            if serializer.is_valid():
-                created.append(serializer.save())
-            else:
-                errors.append({
-                    'data': item,
-                    'errors': serializer.errors
-                })
+    validated_data = []
+
+    for idx, item in enumerate(items):
+        serializer = EquipmentCreateSerializer(data=item)
+        if not serializer.is_valid():
+            errors.append({
+                'index': idx,
+                'errors': serializer.errors,
+                'data': item
+            })
+        else:
+            validated_data.append(serializer.validated_data)
     if errors:
         raise ValidationError({
-            'created': EquipmentCreateSerializer(created, many=True).data,
+            'detail': 'Ошибка валидации',
             'errors': errors
         })
-    return created if isinstance(data, list) else created[0]
+    try:
+        with transaction.atomic():
+            created = []
+            for data in validated_data:
+                if Equipment.objects.filter(equipment_type=data['equipment_type'],
+                                            serial_number=data['serial_number']
+                                            ).exists():
+                    raise ValidationError({
+                        'serial_number': 'Конфликт уникальности'
+                    })
+                obj = Equipment.objects.create(**data)
+                created.append(obj)
+            return created if isinstance(data, list) else created[0]
+
+    except Exception as e:
+        raise ValidationError({'detail': f'Ошибка при сохранении: {str(e)}'})
 
 
 def get_equipment(pk):
@@ -58,13 +74,13 @@ def get_equipment(pk):
     return equipment
 
 
-def update_equipment(pk, data):
+def update_equipment(pk, data, partial=False):
     """
     Обновляет запись Equipment по id и возвращает ее
     """
     try:
         instance = get_equipment(pk)
-        serializer = EquipmentUpdateSerializer(instance, data=data, partial=True)
+        serializer = EquipmentUpdateSerializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         return serializer.save()
     except:
@@ -79,7 +95,3 @@ def delete_equipment(pk):
     instance.is_deleted = True
     instance.save()
     return instance
-
-
-
-
