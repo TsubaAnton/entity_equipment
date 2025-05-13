@@ -41,6 +41,9 @@ def validate_number_matches_the_mask(serial_number: str, mask_sn: str) -> None:
 
 
 def validate_equipment_data(serial_number: str, equipment_type: EquipmentType, instance: Equipment = None) -> None:
+    """
+    Выполняет валидацию данных оборудования перед сохранением.
+    """
     validate_number_matches_the_mask(serial_number, equipment_type.mask_sn)
     qs = Equipment.objects.filter(equipment_type=equipment_type, serial_number=serial_number)
     if instance:

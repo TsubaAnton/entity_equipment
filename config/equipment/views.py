@@ -48,17 +48,17 @@ class EquipmentRetrieveUpdateDestroyAPIView(generics.GenericAPIView):
     def get(self, request, pk):
         obj = get_equipment(pk)
         serializer = EquipmentSerializer(obj)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
         obj = update_equipment(pk, request.data, partial=False)
         serializer = EquipmentSerializer(obj)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
         obj = update_equipment(pk, request.data, partial=True)
         serializer = EquipmentSerializer(obj)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
         delete_equipment(pk)
