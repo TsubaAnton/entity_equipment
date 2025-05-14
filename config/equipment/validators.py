@@ -10,7 +10,7 @@ def validate_number_matches_the_mask(serial_number: str, mask_sn: str) -> None:
     mask = mask_sn.strip()
     if len(serial_number) != len(mask):
         raise ValidationError(
-            f"Неправильная длина: ожидалось {len(mask)}, получено {len(serial_number)}"
+            {"serial_number": f"Неправильная длина: ожидалось {len(mask)}, получено {len(serial_number)}"}
         )
     regex_map = {
         'N': r'[0-9]',
@@ -33,9 +33,9 @@ def validate_number_matches_the_mask(serial_number: str, mask_sn: str) -> None:
         for i, (ch, sym) in enumerate(zip(serial_number, mask), start=1):
             if not re.fullmatch(regex_map[sym], ch):
                 raise ValidationError(
-                    f"Символ '{ch}' на позиции {i} не соответствует требованию '{sym}'"
+                    {"serial_number": f"Символ '{ch}' на позиции {i} не соответствует требованию '{sym}'"}
                 )
-        raise ValidationError("Серийный номер не соответствует маске")
+        raise ValidationError({"serial_number": "Серийный номер не соответствует маске"})
 
     return None
 

@@ -49,12 +49,6 @@ def create_equipment(data):
         with transaction.atomic():
             created = []
             for data in validated_data:
-                if Equipment.objects.filter(equipment_type=data['equipment_type'],
-                                            serial_number=data['serial_number']
-                                            ).exists():
-                    raise ValidationError({
-                        'serial_number': 'Конфликт уникальности'
-                    })
                 obj = Equipment.objects.create(**data)
                 created.append(obj)
             return created if isinstance(data, list) else created[0]
