@@ -54,8 +54,7 @@ def create_equipment(data):
             return created if isinstance(data, list) else created[0]
 
     except Exception as e:
-        raise ValidationError({'detail': f'Ошибка при сохранении: {str(e)}'})
-
+        raise ValidationError({"non_field_errors": [f"Ошибка при сохранении: {str(e)}"]})
 
 def get_equipment(pk):
     """
